@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title></title>
+  </head>
+  <body>
+    <div id="home">
+    </div>
+    <div id="hi">
+    </div>
+    <script src="https://unpkg.com/single-spa/lib/single-spa.js"></script>
+    <script>
+      const homeEl = document.getElementById('home')
+      const home = {
+        bootstrap() {
+          return Promise.resolve()
+        },
+        mount() {
+          return Promise.resolve().then(() => {
+            const linkToAngular = document.createElement('a')
+            linkToAngular.href = '/hi'
+            linkToAngular.innerText = 'Go to angular'
+            linkToAngular.addEventListener('click', evt => {
+              evt.preventDefault()
+              history.pushState({}, "", "/hi")
+            })
+
+            const linkToHome = document.createElement('a')
+            linkToHome.href = '/'
+            linkToHome.innerText = 'Go to home'
+            linkToHome.addEventListener('click', evt => {
+              evt.preventDefault()
+              history.pushState({}, "", "/")
+            })
+            homeEl.appendChild(linkToHome)
+            homeEl.appendChild(linkToAngular)
+          })
+        },
+        unmount() {
+          return Promise.resolve().then(() => {
+            homeEl.innerHTML = ''
+          })
+        }
+      }
+      singleSpa.registerApplication('hiAngularApp', () => loadHi(), location => location.pathname.startsWith('/hi'))
+      singleSpa.registerApplication('home', () => Promise.resolve(home), location => true)
+      singleSpa.start()
+
+      function loadHi() {
+        return new Promise((resolve, reject) => {
+          const scriptEl = document.createElement('script')
+          scriptEl.src = 'http://localhost:4200/main.js'
+          scriptEl.addEventListener('load', () => {
+            const app = window.angularHiApp.__esModule ? window.angularHiApp.default : window.angularHiApp
+            resolve(app)
+          })
+          scriptEl.addEventListener('error', err => reject(err))
+          document.head.appendChild(scriptEl)
+        })
+      }
+    </script>
+  </body>
+</html>
